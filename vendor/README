@@ -1,0 +1,145 @@
+*****************************************************************
+*                                                               *
+*  This is the "distribution" version of sequential lufact, as  *
+*  described in the Gilbert-Peierls SISSC paper and as tested   *
+*  in the George-Ng report on comparison of pivoting codes.     *
+*  It is freely available for research use, but any publication *
+*  should reference the September 1988 SISSC paper by Gilbert   *
+*  and Peierls.  The code is unsupported but is believed to be  *
+*  correct; questions may be addressed to:                      *
+*  John Gilbert (na.gilbert@score.stanford.edu)    and/or       *
+*  Tim Peierls  (na.peierls@score.stanford.edu)                 *
+*                                                               *
+*****************************************************************
+
+The FORTRAN code discussed below implements an algorithm for sparse
+Gaussian elimination in time proportional to arithmetic operations.
+It does NOT do any preordering for sparsity.  We recommend preordering
+the columns of the input matrix by using minimum degree on the
+symmetric structure of (A-transpose)A, i.e. the column intersection
+graph of A.
+ 
+The file lu.f contains all the routines needed for factorization and
+solution of sparse linear systems:
+        lufact
+        lusolv
+        ludfs
+        lucomp
+        lucopy
+        lsolve
+        usolve
+        ifill
+        rfill
+        icopy
+        rcopy
+        cntrow
+        requiv
+ 
+The file main.f contains a sample main routine to call LUFACT and
+LUSOLV and report on their performance.  This routine reads (and
+writes) files containing matrices in the following format (where a
+slash stands for line break):
+ 
+# rows / # columns / # nonzeros in column 1 / row-index, value
+                                            / row-index, value
+                                            ...
+                   / # nonzeros in column 2 / row-index, value
+                                            / row-index, value
+                                            ...
+                   ...
+ 
+Here are descriptions of LUFACT and LUSOLV, taken from the initial
+comments in the code:
+ 
+subroutine lufact (pivot, thresh, nrow, ncol, a, arow, acolst,
+                   maxlu, lastlu, lu, lurow, lcolst, ucolst, perm,
+                   error, rwork, iwork)
+ 
+Given a matrix A in sparse format by columns, perform an LU
+factorization, with partial or threshold pivoting, if desired.  The
+factorization is PA = LU, where L and U are triangular.  P, L, and U
+are returned; see below for format.  This subroutine uses the
+Coleman-Gilbert-Peierls algorithm, in which total time is O(nonzero
+multiplications).
+ 
+  If A is the same array as LU, the solution overwrites the original
+values of A.
+ 
+Input parameters:
+ 
+pivot   = 0 for no pivoting
+        = 1 for partial (row) pivoting
+        = 2 for threshold (row) pivoting
+thresh  Used only in threshold pivoting.  For each major step of the
+        algorithm, the pivot is chosen to be a nonzero below the
+        diagonal in the current column of A with the most nonzeros to
+        the right in its row, with absolute value at least
+        thresh*maxpiv, where maxpiv is the largest absolute value below
+        the diagonal in the current column.  Note that if thresh .le.
+        0.0, then the pivot is chosen purely on the basis of row
+        sparsity.  Also, if thresh .ge. 1.0, then the pivoting is
+        effectively partial pivoting with ties broken on the basis of
+        sparsity.
+nrow    number of rows in A.
+ncol    number of columns in A.
+a       nonzeros in A.  Nonzeros in each column are contiguous and columns
+        are in left-to-right order, but nonzeros are not necessarily in
+        order by row within each column.
+arow    arow(i) is the row number of the nonzero a(i).
+acolst  acolst(j) is the index in a of the first nonzero in column j.
+        acolst(ncol+1) is one more than the number of nonzeros in A.
+maxlu   size of arrays lu and lurow.
+ 
+Output parameters:
+ 
+lastlu  index of last nonzero in lu; number of nonzeros in L-I+U.
+lu      nonzeros in L and U.  Nonzeros in each column are contiguous.
+        Columns of U and L alternate: u1, l1, u2, l2, ..., un, ln.
+        Nonzeros are not necessarily in order by row within columns.
+        The diagonal elements of L, which are all 1, are not stored.
+lurow   lurow(i) is the row number of the nonzero lu(i).
+        During the computation, these correspond to row numbers in A,
+        so we really store the non-triangular PtL and PtU.
+        At the end we transform them to row numbers in PA, so the
+        L and U we return are really triangular.
+lcolst  lcolst(j) is the index in lu of the first nonzero in col j of L.
+ucolst  ucolst(j) is the index in lu of the first nonzero in col j of U.
+        The last nonzero of col j of U is in position lcolst(j)-1, and
+        the last nonzero of col j of L is in position ucolst(j+1)-1.
+        ucolst(ncol+1) is one more than the number of nonzeros in L-I+U.
+        Notice that ucolst has dimension ncol+1 and lcolst has dimension ncol,
+        although ucolst(ncol+1)=lcolst(ncol) because the last column of L
+        contains only the diagonal one, which is not stored.
+perm    perm(r) = s means that row r of A is in position s in PA.
+error   Success or failure indication:
+                0  success
+                1  zero pivot encountered (factorization completed)
+                2  out of space
+ 
+Working parameters:
+ 
+rwork   real work vector of length nrow
+iwork   integer work vector of length 3*nrow (4*nrow for threshold pivoting)
+ 
+ 
+ 
+ 
+subroutine lusolv (n, lu, lurow, lcolst, ucolst, perm, x, rwork)
+ 
+Solve for X in a square linear system Ax = b, given the factorization
+PA=LU.
+ 
+Input parameters:
+ 
+n                       dimension of matrix.
+lu, lurow, lcolst,
+ucolst, perm            PA=LU factorization (see lufact for format).
+ 
+Modified parameter:
+ 
+x                       Real array of length n.
+                        On entry, holds B.  On exit, holds X.
+ 
+Work parameter:
+ 
+rwork                   Real array of length n; holds intermediate solution.
