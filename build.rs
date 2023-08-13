@@ -12,6 +12,7 @@ fn main() {
     println!("cargo:rustc-link-search={}", out_dir);
 
     println!("cargo:rustc-link-lib=gp");
+    println!("cargo:rustc-link-lib=gfortran");
 
     let out = Command::new("make")
         .args(&["-C", vendor_path.to_str().unwrap(), "clean", "install"])
