@@ -1,6 +1,6 @@
 # lufact-sys
 
-Rust binding to sequential `lufact` routines described in 
+Rust binding to sequential `lufact` routines described in
 "Sparse Partial Pivoting in Time Proportional to Arithmetic
 Operations" by John R. Gilbert and Tim Peierls.
 
@@ -20,8 +20,8 @@ Operations" by John R. Gilbert and Tim Peierls.
 }
 ```
 
-The original FORTRAN source is distributed in Sivan Toledo's work on 
-incomplete-factorization, from PARC in the early 1990s, and can be 
+The original FORTRAN source is distributed in Sivan Toledo's work on
+incomplete-factorization, from PARC in the early 1990s, and can be
 found in the [ILU](http://www.netlib.org/linalg/ilu.tgz) package on Netlib.
 
 ## License
