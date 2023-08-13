@@ -81,8 +81,8 @@ extern "C" {
     pub fn lucopy_(
         pivot: *const c_int,
         pthresh: *const c_double,
-        dthresh: *mut c_double,
-        nzcount: *mut c_int,
+        dthresh: *const c_double,
+        nzcount: *const c_int,
         jcol: *const c_int,
         ncol: *const c_int,
         lastlu: *mut c_int,
@@ -95,7 +95,7 @@ extern "C" {
         dense: *mut c_double,
         pattern: *mut c_int,
         twork: *mut c_double,
-        flops: *mut c_int,
+        flops: *mut c_double,
         zpivot: *mut c_int,
     );
 
