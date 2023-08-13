@@ -1,30 +1,30 @@
 F77 = f77
-FFLAGS = -O1
-
+FFLAGS = -O3
 AR = ar
 
-LUFILES = lufact.o lusolv.o ludfs.o lucomp.o \
-		lucopy.o lsolve.o usolve.o ifill.o \
-		rfill.o icopy.o rcopy.o requiv.o \
-		second.o flops.o \
-                ltsolve.o utsolve.o maxmatch.o ordstat.o \
-                cntrow.o
+OUT_DIR ?= .
 
-LIB = libgp.a
+FFILES = lufact.f lusolv.f ludfs.f lucomp.f \
+		lucopy.f lsolve.f usolve.f ifill.f \
+		rfill.f icopy.f rcopy.f requiv.f \
+		second.f flops.f \
+		ltsolve.f utsolve.f maxmatch.f ordstat.f \
+		cntrow.f
+
+OFILES = $(addprefix $(OUT_DIR)/, $(addsuffix .o,$(basename $(FFILES))))
+
+LIB = $(OUT_DIR)/libgp.a
 
 all: $(LIB)
 
-$(LIB): $(LUFILES)
-	$(AR) cr $@ $(LUFILES)
+$(LIB): $(OFILES)
+	$(AR) cr $@ $(OFILES)
 
-%.o: %.f
-	$(F77) $(FFLAGS) -c $<
-
-install: $(LIB)
-	cp $< $(OUT_DIR)
+$(OUT_DIR)/%.o: %.f
+	$(F77) $(FFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(LUFILES)
+	rm -f $(OFILES)
 
 purge: clean
 	rm -f $(LIB)

@@ -14,15 +14,9 @@ fn main() {
     println!("cargo:rustc-link-lib=gp");
     println!("cargo:rustc-link-lib=gfortran");
 
-    let out = Command::new("make")
-        .args(&["-C", vendor_path.to_str().unwrap(), "clean", "install"])
+    let output = Command::new("make")
+        .args(&["-C", vendor_path.to_str().unwrap(), "all"])
         .output()
         .expect("could not spawn `make`");
-    assert!(out.status.success(), "{:?}", out);
-
-    let out = Command::new("make")
-        .args(&["-C", vendor_path.to_str().unwrap(), "purge"])
-        .output()
-        .expect("could not spawn `make`");
-    assert!(out.status.success(), "{:?}", out);
+    assert!(output.status.success(), "{:?}", output);
 }
